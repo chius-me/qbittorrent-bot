@@ -1,0 +1,17 @@
+services:
+  qbittorrent-bot:
+    build: .
+    container_name: qbittorrent-bot
+    restart: unless-stopped
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - QBITTORRENT_URL=${QBITTORRENT_URL:-http://192.168.1.100:8080}
+      - QBITTORRENT_USER=${QBITTORRENT_USER:-admin}
+      - QBITTORRENT_PASS=${QBITTORRENT_PASS:-adminadmin}
+      - ALLOWED_USERS=${ALLOWED_USERS:-}
+      - TZ=${TZ:-Asia/Shanghai}
+    volumes:
+      - qbittorrent-bot-data:/data
+
+volumes:
+  qbittorrent-bot-data:
