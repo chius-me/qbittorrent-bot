@@ -55,6 +55,8 @@ func (b *Bot) Start() {
 		{Command: "resume", Description: "恢复任务"},
 		{Command: "delete", Description: "删除任务"},
 		{Command: "notify", Description: "开启/关闭下载完成通知"},
+		{Command: "info", Description: "查看qBittorrent版本信息"},
+		{Command: "stats", Description: "查看实时下载统计"},
 	}
 	setCmd := tgbotapi.NewSetMyCommands(commands...)
 	if _, err := b.api.Request(setCmd); err != nil {
@@ -126,8 +128,12 @@ func (b *Bot) handleCommand(msg *tgbotapi.Message) {
 		b.cmdDelete(msg)
 	case "notify":
 		b.cmdNotify(msg)
+	case "info":
+		b.cmdInfo(msg)
+	case "stats":
+		b.cmdStats(msg)
 	default:
-		b.reply(msg.Chat.ID, msg.MessageID, "未知命令。可用命令: /add, /list, /pause, /resume, /delete, /notify")
+		b.reply(msg.Chat.ID, msg.MessageID, "未知命令。可用命令: /add, /list, /pause, /resume, /delete, /notify, /info, /stats")
 	}
 }
 
@@ -373,6 +379,84 @@ func (b *Bot) cmdNotify(msg *tgbotapi.Message) {
 		b.reply(msg.Chat.ID, msg.MessageID, "下载完成通知已关闭")
 	default:
 		b.reply(msg.Chat.ID, msg.MessageID, "用法: /notify on|off")
+	}
+}
+
+func (b *Bot) cmdInfo(msg *tgbotapi.Message) {
+	version, err := b.qbit.GetAppVersion()
+	if err != nil {
+		log.Printf("get version failed: %v", err)
+		b.reply(msg.Chat.ID, msg.MessageID, "获取 qBittorrent 版本失败")
+		return
+	}
+	build, err := b.qbit.GetBuildInfo()
+	if err != nil {
+		log.Printf("get build info failed: %v", err)
+		b.reply(msg.Chat.ID, msg.MessageID, "获取构建信息失败")
+		return
+	}
+	b.replyHTML(msg.Chat.ID, msg.MessageID, formatInfo(version, build))
+}
+
+func (b *Bot) cmdStats(msg *tgbotapi.Message) {
+	transfer, err := b.qbit.GetTransferInfo()
+	if err != nil {
+		log.Printf("get transfer info failed: %v", err)
+		b.reply(msg.Chat.ID, msg.MessageID, "获取统计信息失败")
+		return
+	}
+	torrents, err := b.qbit.List()
+	if err != nil {
+		log.Printf("list failed: %v", err)
+		b.reply(msg.Chat.ID, msg.MessageID, "获取任务列表失败")
+		return
+	}
+	active := 0
+	for _, t := range torrents {
+		if t.State == "downloading" || t.State == "uploading" || t.State == "forcedDL" || t.State == "metaDL" {
+			active++
+		}
+	}
+	b.replyHTML(msg.Chat.ID, msg.MessageID, formatStats(transfer, len(torrents), active))
+}
+
+func formatInfo(version string, build *qbit.BuildInfo) string {
+	return fmt.Sprintf("<b>🖥 qBittorrent %s</b>\n   API v%s · libtorrent %s\n   Qt %s · Boost %s",
+		version, strings.TrimPrefix(version, "v"), build.Libtorrent, build.Qt, build.Boost)
+}
+
+func formatStats(transfer *qbit.TransferInfo, total, active int) string {
+	return fmt.Sprintf(
+		"<b>📊 下载 %s/s · 上传 %s/s</b>\n\n   ⬇️ 下载 %s   ⬆️ 上传 %s\n   🌐 DHT %d 节点 · %s\n   📦 活跃任务 %d / %d",
+		formatSpeed(transfer.DlSpeed), formatSpeed(transfer.UpSpeed),
+		formatSize(transfer.DlData), formatSize(transfer.UpData),
+		transfer.DHTNodes, translateConnStatus(transfer.ConnectionStatus),
+		active, total,
+	)
+}
+
+func formatSpeed(bytesPerSec int64) string {
+	if bytesPerSec < 1024 {
+		return fmt.Sprintf("%d B", bytesPerSec)
+	}
+	div, exp := int64(1024), 0
+	for n := bytesPerSec / 1024; n >= 1024; n /= 1024 {
+		div *= 1024
+		exp++
+	}
+	return fmt.Sprintf("%.1f %cB", float64(bytesPerSec)/float64(div), "KMGTPE"[exp])
+}
+
+func translateConnStatus(s string) string {
+	switch s {
+	case "connected":
+		return "已连接"
+	case "firewalled":
+		return "防火墙限制"
+	case "disconnected":
+		return "未连接"
+	default:
+		return s
 	}
 }
 

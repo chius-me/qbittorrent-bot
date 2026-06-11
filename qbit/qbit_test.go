@@ -140,6 +140,80 @@ func TestList(t *testing.T) {
 	}
 }
 
+func TestGetAppVersion(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v2/app/version" && r.Method == "GET" {
+			w.Write([]byte("v4.6.0"))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	c, err := NewClient(server.URL, "", "")
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	v, err := c.GetAppVersion()
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if v != "v4.6.0" {
+		t.Fatalf("expected v4.6.0, got %s", v)
+	}
+}
+
+func TestGetBuildInfo(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v2/app/buildInfo" && r.Method == "GET" {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(`{"libtorrent":"2.0.9.0","qt":"6.4.2","boost":"1.83.0","openssl":"3.1.1","bitness":64}`))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	c, err := NewClient(server.URL, "", "")
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	info, err := c.GetBuildInfo()
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if info.Libtorrent != "2.0.9.0" || info.Qt != "6.4.2" || info.Bitness != 64 {
+		t.Fatalf("unexpected build info: %+v", info)
+	}
+}
+
+func TestGetTransferInfo(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v2/transfer/info" && r.Method == "GET" {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(`{"dl_info_speed":10485760,"up_info_speed":2097152,"dl_info_data":1073741824,"up_info_data":536870912,"dl_rate_limit":0,"up_rate_limit":0,"dht_nodes":285,"connection_status":"connected"}`))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	c, err := NewClient(server.URL, "", "")
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	info, err := c.GetTransferInfo()
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if info.DlSpeed != 10485760 || info.UpSpeed != 2097152 {
+		t.Fatalf("unexpected speed: dl=%d ul=%d", info.DlSpeed, info.UpSpeed)
+	}
+	if info.DHTNodes != 285 || info.ConnectionStatus != "connected" {
+		t.Fatalf("unexpected status: dht=%d conn=%s", info.DHTNodes, info.ConnectionStatus)
+	}
+}
+
 func TestPauseResumeDelete(t *testing.T) {
 	lastPath := ""
 	lastHashes := ""
