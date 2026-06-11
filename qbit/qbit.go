@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"strings"
 )
 
 type TorrentInfo struct {
@@ -19,6 +21,25 @@ type TorrentInfo struct {
 	Dlspeed  int64   `json:"dlspeed"`
 	AddedOn  int64   `json:"added_on"`
 	Category string  `json:"category"`
+}
+
+type BuildInfo struct {
+	Libtorrent  string `json:"libtorrent"`
+	Qt          string `json:"qt"`
+	Boost       string `json:"boost"`
+	OpenSSL     string `json:"openssl"`
+	Bitness     int    `json:"bitness"`
+}
+
+type TransferInfo struct {
+	DlSpeed         int64  `json:"dl_info_speed"`
+	UpSpeed         int64  `json:"up_info_speed"`
+	DlData          int64  `json:"dl_info_data"`
+	UpData          int64  `json:"up_info_data"`
+	DlRateLimit     int64  `json:"dl_rate_limit"`
+	UpRateLimit     int64  `json:"up_rate_limit"`
+	DHTNodes        int    `json:"dht_nodes"`
+	ConnectionStatus string `json:"connection_status"`
 }
 
 type Client struct {
@@ -103,6 +124,54 @@ func (c *Client) List() ([]TorrentInfo, error) {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
 	return torrents, nil
+}
+
+func (c *Client) GetAppVersion() (string, error) {
+	resp, err := c.httpClient.Get(c.baseURL + "/api/v2/app/version")
+	if err != nil {
+		return "", fmt.Errorf("version request failed: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("version failed with status %d", resp.StatusCode)
+	}
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("read version: %w", err)
+	}
+	return strings.TrimSpace(string(b)), nil
+}
+
+func (c *Client) GetBuildInfo() (*BuildInfo, error) {
+	resp, err := c.httpClient.Get(c.baseURL + "/api/v2/app/buildInfo")
+	if err != nil {
+		return nil, fmt.Errorf("build info request failed: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("build info failed with status %d", resp.StatusCode)
+	}
+	var info BuildInfo
+	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
+		return nil, fmt.Errorf("decode build info: %w", err)
+	}
+	return &info, nil
+}
+
+func (c *Client) GetTransferInfo() (*TransferInfo, error) {
+	resp, err := c.httpClient.Get(c.baseURL + "/api/v2/transfer/info")
+	if err != nil {
+		return nil, fmt.Errorf("transfer info request failed: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("transfer info failed with status %d", resp.StatusCode)
+	}
+	var info TransferInfo
+	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
+		return nil, fmt.Errorf("decode transfer info: %w", err)
+	}
+	return &info, nil
 }
 
 func (c *Client) Pause(hash string) error {
