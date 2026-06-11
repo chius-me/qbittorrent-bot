@@ -22,8 +22,11 @@ func TestLogin(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c := NewClient(server.URL, "admin", "adminadmin")
-	err := c.Login()
+	c, err := NewClient(server.URL, "admin", "adminadmin")
+	if err != nil {
+		t.Fatalf("expected no error from NewClient, got %v", err)
+	}
+	err = c.Login()
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -35,8 +38,11 @@ func TestLoginFailure(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c := NewClient(server.URL, "bad", "wrong")
-	err := c.Login()
+	c, err := NewClient(server.URL, "bad", "wrong")
+	if err != nil {
+		t.Fatalf("expected no error from NewClient, got %v", err)
+	}
+	err = c.Login()
 	if err == nil {
 		t.Fatal("expected error for bad credentials")
 	}

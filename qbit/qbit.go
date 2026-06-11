@@ -14,14 +14,17 @@ type Client struct {
 	httpClient *http.Client
 }
 
-func NewClient(baseURL, username, password string) *Client {
-	jar, _ := cookiejar.New(nil)
+func NewClient(baseURL, username, password string) (*Client, error) {
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		return nil, fmt.Errorf("create cookie jar: %w", err)
+	}
 	return &Client{
 		baseURL:    baseURL,
 		username:   username,
 		password:   password,
 		httpClient: &http.Client{Jar: jar},
-	}
+	}, nil
 }
 
 func (c *Client) Login() error {
