@@ -47,6 +47,19 @@ func New(token string, qbitClient *qbit.Client, notif *notifier.Notifier, allowe
 }
 
 func (b *Bot) Start() {
+	commands := []tgbotapi.BotCommand{
+		{Command: "add", Description: "添加磁力链接或URL"},
+		{Command: "list", Description: "查看所有下载任务"},
+		{Command: "pause", Description: "暂停任务"},
+		{Command: "resume", Description: "恢复任务"},
+		{Command: "delete", Description: "删除任务"},
+		{Command: "notify", Description: "开启/关闭下载完成通知"},
+	}
+	setCmd := tgbotapi.NewSetMyCommands(commands...)
+	if _, err := b.api.Request(setCmd); err != nil {
+		log.Printf("set commands failed: %v", err)
+	}
+
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
@@ -145,16 +158,42 @@ func (b *Bot) cmdList(msg *tgbotapi.Message) {
 		return
 	}
 
+	const maxMsgLen = 3800
 	var sb strings.Builder
+	first := true
+	chunk := 0
+
 	for i, t := range torrents {
 		progressBar := buildProgressBar(t.Progress)
 		sizeStr := formatSize(t.Size)
 		stateStr := translateState(t.State)
-		sb.WriteString(fmt.Sprintf("<b>[%d]</b> %s\n", i, t.Name))
-		sb.WriteString(fmt.Sprintf("    %s %.1f%%  %s  %s\n",
-			progressBar, t.Progress*100, sizeStr, stateStr))
+		entry := fmt.Sprintf("<b>[%d]</b> %s\n    %s %.1f%%  %s  %s\n",
+			i, t.Name, progressBar, t.Progress*100, sizeStr, stateStr)
+
+		if sb.Len()+len(entry) > maxMsgLen && sb.Len() > 0 {
+			if first {
+				b.replyHTML(msg.Chat.ID, msg.MessageID, sb.String())
+				first = false
+			} else {
+				chunkMsg := tgbotapi.NewMessage(msg.Chat.ID, sb.String())
+				chunkMsg.ParseMode = "HTML"
+				b.api.Send(chunkMsg)
+			}
+			chunk++
+			sb.Reset()
+		}
+		sb.WriteString(entry)
 	}
-	b.replyHTML(msg.Chat.ID, msg.MessageID, sb.String())
+
+	if sb.Len() > 0 {
+		if first {
+			b.replyHTML(msg.Chat.ID, msg.MessageID, sb.String())
+		} else {
+			chunkMsg := tgbotapi.NewMessage(msg.Chat.ID, sb.String())
+			chunkMsg.ParseMode = "HTML"
+			b.api.Send(chunkMsg)
+		}
+	}
 }
 
 func buildProgressBar(progress float64) string {
