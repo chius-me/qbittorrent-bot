@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+	"html"
 	"io"
 	"log"
 	"net/http"
@@ -161,14 +162,9 @@ func (b *Bot) cmdList(msg *tgbotapi.Message) {
 	const maxMsgLen = 3800
 	var sb strings.Builder
 	first := true
-	chunk := 0
 
 	for i, t := range torrents {
-		progressBar := buildProgressBar(t.Progress)
-		sizeStr := formatSize(t.Size)
-		stateStr := translateState(t.State)
-		entry := fmt.Sprintf("<b>[%d]</b> %s\n    %s %.1f%%  %s  %s\n",
-			i, t.Name, progressBar, t.Progress*100, sizeStr, stateStr)
+		entry := formatTorrentListEntry(i, t)
 
 		if sb.Len()+len(entry) > maxMsgLen && sb.Len() > 0 {
 			if first {
@@ -179,7 +175,6 @@ func (b *Bot) cmdList(msg *tgbotapi.Message) {
 				chunkMsg.ParseMode = "HTML"
 				b.api.Send(chunkMsg)
 			}
-			chunk++
 			sb.Reset()
 		}
 		sb.WriteString(entry)
@@ -196,13 +191,48 @@ func (b *Bot) cmdList(msg *tgbotapi.Message) {
 	}
 }
 
+func formatTorrentListEntry(index int, t qbit.TorrentInfo) string {
+	name := html.EscapeString(truncateRunes(t.Name, 72))
+	return fmt.Sprintf("%s <b>#%d</b> %s\n%s\n<code>%s · %.1f%%</code>\n%s\n\n",
+		stateEmoji(t), index, translateState(t.State), name, formatSize(t.Size), t.Progress*100, buildProgressBar(t.Progress))
+}
+
+func truncateRunes(s string, limit int) string {
+	runes := []rune(s)
+	if len(runes) <= limit {
+		return s
+	}
+	return string(runes[:limit-1]) + "…"
+}
+
+func stateEmoji(t qbit.TorrentInfo) string {
+	if t.Progress >= 1 {
+		return "✅"
+	}
+	switch t.State {
+	case "downloading", "forcedDL", "metaDL":
+		return "⬇️"
+	case "pausedDL", "pausedUP":
+		return "⏸️"
+	case "error", "missingFiles":
+		return "⚠️"
+	case "checkingDL", "checkingUP":
+		return "🔎"
+	default:
+		return "📦"
+	}
+}
+
 func buildProgressBar(progress float64) string {
 	filled := int(progress * 10)
+	if filled < 0 {
+		filled = 0
+	}
 	if filled > 10 {
 		filled = 10
 	}
 	empty := 10 - filled
-	return "[" + strings.Repeat("█", filled) + strings.Repeat("░", empty) + "]"
+	return strings.Repeat("━", filled) + strings.Repeat("░", empty)
 }
 
 func formatSize(bytes int64) string {
