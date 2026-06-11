@@ -1,0 +1,7 @@
+docs/
+qbittorrent-bot
+*.exe
+.idea/
+.vscode/
+*.swp
+.env
