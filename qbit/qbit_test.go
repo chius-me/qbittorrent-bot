@@ -13,9 +13,11 @@ func TestLogin(t *testing.T) {
 			if r.FormValue("username") == "admin" && r.FormValue("password") == "adminadmin" {
 				http.SetCookie(w, &http.Cookie{Name: "SID", Value: "test-sid"})
 				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("Ok."))
 				return
 			}
-			w.WriteHeader(http.StatusForbidden)
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("Fails."))
 			return
 		}
 		w.WriteHeader(http.StatusNotFound)
@@ -32,6 +34,33 @@ func TestLogin(t *testing.T) {
 	}
 }
 
+func TestLoginNoContent(t *testing.T) {
+	// Some qBittorrent versions return HTTP 204 No Content on successful login.
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v2/auth/login" && r.Method == "POST" {
+			r.ParseForm()
+			if r.FormValue("username") == "admin" && r.FormValue("password") == "adminadmin" {
+				http.SetCookie(w, &http.Cookie{Name: "SID", Value: "test-sid"})
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	c, err := NewClient(server.URL, "admin", "adminadmin")
+	if err != nil {
+		t.Fatalf("expected no error from NewClient, got %v", err)
+	}
+	err = c.Login()
+	if err != nil {
+		t.Fatalf("expected no error for HTTP 204 login, got %v", err)
+	}
+}
+
 func TestLoginFailure(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
@@ -45,6 +74,31 @@ func TestLoginFailure(t *testing.T) {
 	err = c.Login()
 	if err == nil {
 		t.Fatal("expected error for bad credentials")
+	}
+}
+
+func TestLoginInvalidCredentials(t *testing.T) {
+	// qBittorrent returns 200 with body "Fails." for invalid credentials.
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v2/auth/login" && r.Method == "POST" {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("Fails."))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	c, err := NewClient(server.URL, "bad", "wrong")
+	if err != nil {
+		t.Fatalf("expected no error from NewClient, got %v", err)
+	}
+	err = c.Login()
+	if err == nil {
+		t.Fatal("expected error for invalid credentials (Fails.)")
+	}
+	if err.Error() != "login failed: invalid credentials" {
+		t.Fatalf("expected invalid credentials error, got %v", err)
 	}
 }
 

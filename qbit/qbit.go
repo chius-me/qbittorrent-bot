@@ -225,8 +225,18 @@ func (c *Client) Login() error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	// qBittorrent may return 200 with body "Ok." or 204 No Content on success.
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("login failed with status %d", resp.StatusCode)
+	}
+	if resp.StatusCode == http.StatusOK {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("read login response: %w", err)
+		}
+		if strings.TrimSpace(string(body)) == "Fails." {
+			return fmt.Errorf("login failed: invalid credentials")
+		}
 	}
 	return nil
 }
