@@ -1,19 +1,21 @@
-<p align="right">
-  English | <a href="./README.zh.md">简体中文</a>
-</p>
+<div align="right">
+  <a href="#readme">English</a> | <a href="./README.zh.md">简体中文</a>
+</div>
 
-<h1 align="center">qbittorrent-bot</h1>
+<div align="center">
 
-<p align="center">
-  A Telegram bot for controlling qBittorrent — send magnet links or torrent files, manage downloads, get notified on completion.
-</p>
+# qbittorrent-bot
 
-<p align="center">
-  <img alt="License" src="https://img.shields.io/badge/License-MIT-blue.svg">
-  <img alt="Language" src="https://img.shields.io/badge/Language-Go-00ADD8.svg">
-  <img alt="CI" src="https://github.com/chius-me/qbittorrent-bot/actions/workflows/ci.yml/badge.svg">
-  <img alt="Docker" src="https://github.com/chius-me/qbittorrent-bot/actions/workflows/docker.yml/badge.svg">
-</p>
+A Telegram bot for controlling qBittorrent — send magnet links or torrent files, manage downloads, get notified on completion.
+
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![CI](https://github.com/chius-me/qbittorrent-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/chius-me/qbittorrent-bot/actions)
+[![Docker](https://github.com/chius-me/qbittorrent-bot/actions/workflows/docker.yml/badge.svg)](https://github.com/chius-me/qbittorrent-bot/actions)
+![Language Go](https://img.shields.io/badge/Language-Go-00ADD8.svg?logo=go&logoColor=white)
+
+[Issues](https://github.com/chius-me/qbittorrent-bot/issues) · [Docker Packages](https://github.com/chius-me/qbittorrent-bot/pkgs/container/qbittorrent-bot)
+
+</div>
 
 ---
 
@@ -125,6 +127,12 @@ go test ./... -v
 - `Dockerfile` — Multi-stage Docker build
 - `.github/workflows/` — CI and Docker image publishing
 
-## License
+## 📄 License
 
-[MIT License](./LICENSE)
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+<div align="center">
+  <sub>Crafted with ❤️ by <a href="https://chius.cc">Chius</a> · Powered by GitHub Actions & Docker</sub>
+</div>
