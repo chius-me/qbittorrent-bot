@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="License" src="https://img.shields.io/badge/License-GPL--3.0-blue.svg">
+  <img alt="License" src="https://img.shields.io/badge/License-MIT-blue.svg">
   <img alt="Language" src="https://img.shields.io/badge/Language-Go-00ADD8.svg">
   <img alt="CI" src="https://github.com/chius-me/qbittorrent-bot/actions/workflows/ci.yml/badge.svg">
   <img alt="Docker" src="https://github.com/chius-me/qbittorrent-bot/actions/workflows/docker.yml/badge.svg">
@@ -127,4 +127,4 @@ go test ./... -v
 
 ## License
 
-[GPL-3.0](LICENSE)
+[MIT License](./LICENSE)
