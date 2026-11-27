@@ -9,11 +9,11 @@
 A Telegram bot for controlling qBittorrent — send magnet links or torrent files, manage downloads, get notified on completion.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![CI](https://github.com/chius-me/qbittorrent-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/chius-me/qbittorrent-bot/actions)
-[![Docker](https://github.com/chius-me/qbittorrent-bot/actions/workflows/docker.yml/badge.svg)](https://github.com/chius-me/qbittorrent-bot/actions)
+[![CI](https://github.com/chius-n/qbittorrent-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/chius-n/qbittorrent-bot/actions)
+[![Docker](https://github.com/chius-n/qbittorrent-bot/actions/workflows/docker.yml/badge.svg)](https://github.com/chius-n/qbittorrent-bot/actions)
 ![Language Go](https://img.shields.io/badge/Language-Go-00ADD8.svg?logo=go&logoColor=white)
 
-[Issues](https://github.com/chius-me/qbittorrent-bot/issues) · [Docker Packages](https://github.com/chius-me/qbittorrent-bot/pkgs/container/qbittorrent-bot)
+[Issues](https://github.com/chius-n/qbittorrent-bot/issues) · [Docker Packages](https://github.com/chius-n/qbittorrent-bot/pkgs/container/qbittorrent-bot)
 
 </div>
 
@@ -38,7 +38,7 @@ A Telegram bot for controlling qBittorrent — send magnet links or torrent file
 ### 1. Clone and configure
 
 ```bash
-git clone https://github.com/chius-me/qbittorrent-bot.git
+git clone https://github.com/chius-n/qbittorrent-bot.git
 cd qbittorrent-bot
 cp .env.example .env
 # Edit .env with your credentials
@@ -87,15 +87,15 @@ The bot is configured via environment variables. Copy `.env.example` to `.env` a
 Pre-built images are available on GitHub Container Registry:
 
 ```text
-ghcr.io/chius-me/qbittorrent-bot
+ghcr.io/chius-n/qbittorrent-bot
 ```
 
 ```bash
 # Latest
-docker pull ghcr.io/chius-me/qbittorrent-bot:latest
+docker pull ghcr.io/chius-n/qbittorrent-bot:latest
 
 # Specific version
-docker pull ghcr.io/chius-me/qbittorrent-bot:v1.0.0
+docker pull ghcr.io/chius-n/qbittorrent-bot:v1.0.0
 ```
 
 The `latest` tag is updated on every push to the `main` branch. Tagged releases (e.g. `v1.0.0`) publish version-specific images.
