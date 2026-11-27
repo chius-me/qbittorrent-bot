@@ -1,6 +1,6 @@
 services:
   qbittorrent-bot:
-    image: ghcr.io/chius-n/qbittorrent-bot:latest
+    image: ghcr.io/chius-cc/qbittorrent-bot:latest
     build: .
     container_name: qbittorrent-bot
     restart: unless-stopped

@@ -9,11 +9,11 @@
 一个 Telegram Bot，用于远程控制 qBittorrent — 发送磁力链接或种子文件即可下载，支持任务管理和完成通知。
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![CI](https://github.com/chius-n/qbittorrent-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/chius-n/qbittorrent-bot/actions)
-[![Docker](https://github.com/chius-n/qbittorrent-bot/actions/workflows/docker.yml/badge.svg)](https://github.com/chius-n/qbittorrent-bot/actions)
+[![CI](https://github.com/chius-cc/qbittorrent-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/chius-cc/qbittorrent-bot/actions)
+[![Docker](https://github.com/chius-cc/qbittorrent-bot/actions/workflows/docker.yml/badge.svg)](https://github.com/chius-cc/qbittorrent-bot/actions)
 ![Language Go](https://img.shields.io/badge/Language-Go-00ADD8.svg?logo=go&logoColor=white)
 
-[问题反馈](https://github.com/chius-n/qbittorrent-bot/issues) · [Docker 镜像包](https://github.com/chius-n/qbittorrent-bot/pkgs/container/qbittorrent-bot)
+[问题反馈](https://github.com/chius-cc/qbittorrent-bot/issues) · [Docker 镜像包](https://github.com/chius-cc/qbittorrent-bot/pkgs/container/qbittorrent-bot)
 
 </div>
 
@@ -38,7 +38,7 @@
 ### 1. 下载配置
 
 ```bash
-git clone https://github.com/chius-n/qbittorrent-bot.git
+git clone https://github.com/chius-cc/qbittorrent-bot.git
 cd qbittorrent-bot
 cp .env.example .env
 # 编辑 .env 填入你的配置
@@ -87,15 +87,15 @@ docker compose up -d
 预构建镜像托管在 GitHub Container Registry：
 
 ```text
-ghcr.io/chius-n/qbittorrent-bot
+ghcr.io/chius-cc/qbittorrent-bot
 ```
 
 ```bash
 # 最新版
-docker pull ghcr.io/chius-n/qbittorrent-bot:latest
+docker pull ghcr.io/chius-cc/qbittorrent-bot:latest
 
 # 指定版本
-docker pull ghcr.io/chius-n/qbittorrent-bot:v1.0.0
+docker pull ghcr.io/chius-cc/qbittorrent-bot:v1.0.0
 ```
 
 `latest` 标签在每次推送 `main` 分支时更新。打 `v*` 标签会同时发布版本对应的镜像。
